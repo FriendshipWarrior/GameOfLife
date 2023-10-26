@@ -10,5 +10,11 @@ namespace GameOfLife.Context
         public BoardContext(DbContextOptions<BoardContext> options) : base(options) 
         { 
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<GameBoard>().HasKey(b => b.BoardId);
+            modelBuilder.Entity<GameBoard>().Property(b => b.BoardJson).HasColumnName("Board");
+        }
     }
 }
