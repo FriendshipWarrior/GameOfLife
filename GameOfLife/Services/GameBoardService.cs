@@ -37,12 +37,63 @@ namespace GameOfLife.Services
                 return null;
             }
 
-            //TODO: Run next board state
+            var nextGenerationBoard = CalculateNextGeneration(gameBoard.Board);
+
+            gameBoard.Board = nextGenerationBoard;
 
             _boardContext.GameBoards.Update(gameBoard);
             await _boardContext.SaveChangesAsync();
 
             return gameBoard;
+        }
+
+        private int[][] CalculateNextGeneration(int[][] currentGeneration)
+        {
+            var rows = currentGeneration.Length;
+            var columns = currentGeneration[0].Length;
+            var nextGeneration = new int[rows][];
+
+            for (int i = 0; i < rows; i++)
+            {
+                nextGeneration[i] = new int[columns];
+                for (int j = 0; j < columns; j++)
+                {
+                    var liveNeighbors = CountLiveNeighbors(currentGeneration, i, j);
+
+                    if (currentGeneration[i][j] == 1)
+                    {
+                        nextGeneration[i][j] = (liveNeighbors == 2 || liveNeighbors == 3) ? 1 : 0;
+                    }
+                    else
+                    {
+                        nextGeneration[i][j] = (liveNeighbors == 3) ? 1 : 0;
+                    }
+                }
+            }
+
+            return nextGeneration;
+        }
+
+        private static int CountLiveNeighbors(int[][] board, int row, int column)
+        {
+            var count = 0;
+            var rows = board.Length;
+            var columns = board[0].Length;
+
+            int[] rowOffsets = { -1, -1, -1, 0, 0, 1, 1, 1 };
+            int[] columnOffsets = { -1, 0, 1, -1, 1, -1, 0, 1 };
+
+            for (int i = 0; i < 8; i++)
+            {
+                int newRow = row + rowOffsets[i];
+                int newCol = column + columnOffsets[i];
+                if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < columns && board[newRow][newCol] == 1)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         public async Task<GameBoard> GetBoardFinalState(int boardId, int numberOfAttempts)
