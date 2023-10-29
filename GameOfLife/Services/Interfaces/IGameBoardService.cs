@@ -4,8 +4,9 @@ namespace GameOfLife.Services.Interfaces
 {
     public interface IGameBoardService
     {
-        Task<int> CreateGameBoard(CreateBoardRequest request);
-        Task<GameBoard> GetBoardNextState(int boardId, int numberOfStates);
-        Task<GameBoard> GetBoardFinalState(int boardId, int numberOfAttempts);
+        Task<int> CreateGameBoardAsync(int[][] board);
+        Task<GameBoard> GetGameBoardAsync(int boardId);
+        Task<GameBoard> GetGameBoardNextStateAsync(int boardId, int numberOfStates);
+        Task<GameBoard> GetGameBoardFinalState(int boardId, int numberOfAttempts);
     }
 }

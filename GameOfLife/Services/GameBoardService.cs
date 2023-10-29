@@ -9,17 +9,19 @@ namespace GameOfLife.Services
         private readonly ILogger<GameBoardService> _logger;
         private readonly BoardContext _boardContext;
 
+        private HashSet<string> _previousStates = new HashSet<string>();
+
         public GameBoardService(ILogger<GameBoardService> logger, BoardContext boardContext)
         {
             _logger = logger;
             _boardContext = boardContext;
         }
 
-        public async Task<int> CreateGameBoard(CreateBoardRequest request)
+        public async Task<int> CreateGameBoardAsync(int[][] board)
         {
             var gameBoard = new GameBoard
             {
-                Board = request.Board,
+                Board = board,
             };
 
             _boardContext.GameBoards.Add(gameBoard);
@@ -28,7 +30,15 @@ namespace GameOfLife.Services
             return gameBoard.BoardId;
         }
 
-        public async Task<GameBoard> GetBoardNextState(int boardId, int numberOfStates)
+
+        public async Task<GameBoard> GetGameBoardAsync(int boardId)
+        {
+            var gameBoard = await _boardContext.GameBoards.FindAsync(boardId);
+
+            return gameBoard;
+        }
+
+        public async Task<GameBoard> GetGameBoardNextStateAsync(int boardId, int numberOfGenerations)
         {
             var gameBoard = await _boardContext.GameBoards.FindAsync(boardId);
 
@@ -37,14 +47,44 @@ namespace GameOfLife.Services
                 return null;
             }
 
-            var nextGenerationBoard = CalculateNextGeneration(gameBoard.Board);
-
-            gameBoard.Board = nextGenerationBoard;
+            for (int i = 0; i < numberOfGenerations || i == 0; i++)
+            {
+                var nextGenerationBoard = CalculateNextGeneration(gameBoard.Board);
+                gameBoard.Board = nextGenerationBoard;
+            }
 
             _boardContext.GameBoards.Update(gameBoard);
             await _boardContext.SaveChangesAsync();
 
             return gameBoard;
+        }
+
+        public async Task<GameBoard> GetGameBoardFinalState(int boardId, int numberOfGenerations)
+        {
+            var gameBoard = await _boardContext.GameBoards.FindAsync(boardId);
+
+            if (gameBoard == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < numberOfGenerations; i++)
+            {
+                var nextGenerationBoard = CalculateNextGeneration(gameBoard.Board);
+                gameBoard.Board = nextGenerationBoard;
+
+                if (_previousStates.Contains(gameBoard.BoardJson))
+                {
+                    _boardContext.GameBoards.Update(gameBoard);
+                    await _boardContext.SaveChangesAsync();
+
+                    return gameBoard;
+                }
+
+                _previousStates.Add(gameBoard.BoardJson);
+            }
+
+            throw new InvalidOperationException("Game board did not reach conlusion within the specific number of generations.");
         }
 
         private int[][] CalculateNextGeneration(int[][] currentGeneration)
@@ -94,23 +134,6 @@ namespace GameOfLife.Services
             }
 
             return count;
-        }
-
-        public async Task<GameBoard> GetBoardFinalState(int boardId, int numberOfAttempts)
-        {
-            var gameBoard = await _boardContext.GameBoards.FindAsync(boardId);
-
-            if (gameBoard == null)
-            {
-                return null;
-            }
-
-            //TODO: Run final board state
-
-            _boardContext.GameBoards.Update(gameBoard);
-            await _boardContext.SaveChangesAsync();
-
-            return gameBoard;
         }
     }
 }

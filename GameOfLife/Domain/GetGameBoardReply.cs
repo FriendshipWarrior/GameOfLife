@@ -1,6 +1,6 @@
 ﻿namespace GameOfLife.Domain
 {
-    public class GetBoardReply
+    public class GetGameBoardReply
     {
         public GameBoard GameBoard { get; set; }
     }

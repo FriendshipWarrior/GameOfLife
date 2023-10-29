@@ -19,14 +19,14 @@ namespace GameOfLife.Controllers
 
         [ProducesResponseType(typeof(CreateBoardReply), StatusCodes.Status200OK)]
         [HttpPost]
-        public async Task<IActionResult> CreateBoard([FromBody] CreateBoardRequest request)
+        public async Task<IActionResult> CreateGameBoard([FromBody] CreateBoardRequest request)
         {
             if (request?.Board == null)
             {
                 return BadRequest(request);
             }
 
-            var boardId = await _gameBoardService.CreateGameBoard(request);
+            var boardId = await _gameBoardService.CreateGameBoardAsync(request.Board);
 
             var reply = new CreateBoardReply
             {
@@ -36,23 +36,18 @@ namespace GameOfLife.Controllers
             return Ok(reply);
         }
 
-        [ProducesResponseType(typeof(GetBoardReply), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(GetGameBoardReply), StatusCodes.Status200OK)]
         [HttpGet("{boardId}")]
-        public async Task<IActionResult> GetBoardNextState(int boardId, [FromQuery] int numberOfStates)
+        public async Task<IActionResult> GetGameBoard(int boardId)
         {
-            if (numberOfStates < 0) 
-            {
-                return BadRequest(numberOfStates);
-            }
-
-            var gameBoard = await _gameBoardService.GetBoardNextState(boardId, numberOfStates);
+            var gameBoard = await _gameBoardService.GetGameBoardAsync(boardId);
 
             if (gameBoard == null)
             {
                 return NotFound();
             }
 
-            var reply = new GetBoardReply
+            var reply = new GetGameBoardReply
             {
                 GameBoard = gameBoard,
             };
@@ -60,18 +55,37 @@ namespace GameOfLife.Controllers
             return Ok(reply);
         }
 
-        [ProducesResponseType(typeof(GetBoardReply), StatusCodes.Status200OK)]
-        [HttpGet("{boardId}/final")]
-        public async Task<IActionResult> GetBoardFinalState(int boardId, [FromQuery] int numberOfAttempts)
+        [ProducesResponseType(typeof(GetGameBoardReply), StatusCodes.Status200OK)]
+        [HttpPut("{boardId}/next")]
+        public async Task<IActionResult> GetGameBoardNextState(int boardId, [FromBody] UpdateNextGameBoardStateRequest request)
         {
-            if (numberOfAttempts < 1)
+            var gameBoard = await _gameBoardService.GetGameBoardNextStateAsync(boardId, request.NumberOfGenerations);
+
+            if (gameBoard == null)
             {
-                return BadRequest(numberOfAttempts);
+                return NotFound();
             }
 
-            var gameBoard = await _gameBoardService.GetBoardFinalState(boardId, numberOfAttempts);
+            var reply = new GetGameBoardReply
+            {
+                GameBoard = gameBoard,
+            };
 
-            var reply = new GetBoardReply
+            return Ok(reply);
+        }
+
+        [ProducesResponseType(typeof(GetGameBoardReply), StatusCodes.Status200OK)]
+        [HttpPut("{boardId}/final")]
+        public async Task<IActionResult> GetGameBoardFinalState(int boardId, UpdateNextGameBoardStateRequest request)
+        {
+            var gameBoard = await _gameBoardService.GetGameBoardFinalState(boardId, request.NumberOfGenerations);
+
+            if (gameBoard == null)
+            {
+                return NotFound();
+            }
+
+            var reply = new GetGameBoardReply
             {
                 GameBoard = gameBoard,
             };
