@@ -78,7 +78,7 @@ namespace GameOfLife.Controllers
         [HttpPut("{boardId}/final")]
         public async Task<IActionResult> GetGameBoardFinalState(int boardId, UpdateNextGameBoardStateRequest request)
         {
-            var gameBoard = await _gameBoardService.GetGameBoardFinalState(boardId, request.NumberOfGenerations);
+            var gameBoard = await _gameBoardService.GetGameBoardFinalStateAsync(boardId, request.NumberOfGenerations);
 
             if (gameBoard == null)
             {

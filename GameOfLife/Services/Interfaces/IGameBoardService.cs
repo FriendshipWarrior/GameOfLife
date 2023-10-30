@@ -7,6 +7,6 @@ namespace GameOfLife.Services.Interfaces
         Task<int> CreateGameBoardAsync(int[][] board);
         Task<GameBoard> GetGameBoardAsync(int boardId);
         Task<GameBoard> GetGameBoardNextStateAsync(int boardId, int numberOfStates);
-        Task<GameBoard> GetGameBoardFinalState(int boardId, int numberOfAttempts);
+        Task<GameBoard> GetGameBoardFinalStateAsync(int boardId, int numberOfAttempts);
     }
 }

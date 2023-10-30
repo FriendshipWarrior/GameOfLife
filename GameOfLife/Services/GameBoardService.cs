@@ -59,7 +59,7 @@ namespace GameOfLife.Services
             return gameBoard;
         }
 
-        public async Task<GameBoard> GetGameBoardFinalState(int boardId, int numberOfGenerations)
+        public async Task<GameBoard> GetGameBoardFinalStateAsync(int boardId, int numberOfGenerations)
         {
             var gameBoard = await _boardContext.GameBoards.FindAsync(boardId);
 

@@ -1,21 +1,14 @@
-﻿using GameOfLife.Domain;
-using GameOfLife.Services;
-using GameOfLife.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GameOfLife.Services.Interfaces;
 
 namespace GameOfLifeTests.ServiceTests
 {
-    public class GameBoardServiceTests
+    public class GameBoardServiceTests : IClassFixture<TestFixture>
     {
         private readonly IGameBoardService _gameBoardService;
 
-        public GameBoardServiceTests(IGameBoardService gameBoardService)
+        public GameBoardServiceTests(TestFixture fixture)
         {
-            _gameBoardService = gameBoardService;
+            _gameBoardService = fixture.GameBoardService;
         }
 
         [Fact]
@@ -30,6 +23,54 @@ namespace GameOfLifeTests.ServiceTests
             Assert.Equal(boardId, gameBoard.BoardId);
         }
 
+        [Fact]
+        public async Task GetGameBoardNextState_1_Generation()
+        {
+            var board = GenerateBoard(16, 16);
+
+            var boardId = await _gameBoardService.CreateGameBoardAsync(board);
+
+            var gameBoard = await _gameBoardService.GetGameBoardNextStateAsync(boardId, 1);
+
+            Assert.NotEqual(board, gameBoard.Board);
+        }
+
+        [Fact]
+        public async Task GetGameBoardNextState_Many_Generations()
+        {
+            var board = GenerateBoard(16, 16);
+
+            var boardId = await _gameBoardService.CreateGameBoardAsync(board);
+
+            var gameBoard = await _gameBoardService.GetGameBoardNextStateAsync(boardId, 8);
+
+            Assert.NotEqual(board, gameBoard.Board);
+        }
+
+        [Fact]
+        public async Task GetGameBoardFinalState_Failure()
+        {
+            var board = GenerateBoard(24, 24);
+
+            var boardId = await _gameBoardService.CreateGameBoardAsync(board);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await _gameBoardService.GetGameBoardFinalStateAsync(boardId, 1));
+
+            Assert.Equal("Game board did not reach conlusion within the specific number of generations.", exception.Message);
+        }
+
+        [Fact]
+        public async Task GetGameBoardFinalState_Success()
+        {
+            var board = GenerateBoard(3, 3);
+
+            var boardId = await _gameBoardService.CreateGameBoardAsync(board);
+
+            var gameBoard = await _gameBoardService.GetGameBoardFinalStateAsync(boardId, 10);
+
+            Assert.NotNull(gameBoard);
+        }
+
         private int[][] GenerateBoard(int x, int y)
         {
             var board = new int[x][];
@@ -40,7 +81,7 @@ namespace GameOfLifeTests.ServiceTests
                 board[i] = new int[y];
                 for (var j = 0; j < y; j++)
                 {
-                    if (rng.Next(1, 101) < 70)
+                    if (rng.Next(1, 101) < 75)
                     {
                         board[i][j] = 0;
                     }
