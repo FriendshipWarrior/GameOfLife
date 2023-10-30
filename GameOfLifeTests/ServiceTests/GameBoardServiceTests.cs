@@ -36,6 +36,18 @@ namespace GameOfLifeTests.ServiceTests
         }
 
         [Fact]
+        public async Task GetGameBoardNextState_Failure()
+        {
+            var board = GenerateBoard(3, 3);
+
+            var boardId = await _gameBoardService.CreateGameBoardAsync(board);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await _gameBoardService.GetGameBoardNextStateAsync(boardId, 0));
+
+            Assert.Equal("No new generations were generated given the user input.", exception.Message);
+        }
+
+        [Fact]
         public async Task GetGameBoardNextState_Many_Generations()
         {
             var board = GenerateBoard(16, 16);
@@ -45,6 +57,18 @@ namespace GameOfLifeTests.ServiceTests
             var gameBoard = await _gameBoardService.GetGameBoardNextStateAsync(boardId, 8);
 
             Assert.NotEqual(board, gameBoard.Board);
+        }
+
+        [Fact]
+        public async Task GetGameBoardFinalState_Failure_BadInput()
+        {
+            var board = GenerateBoard(24, 24);
+
+            var boardId = await _gameBoardService.CreateGameBoardAsync(board);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await _gameBoardService.GetGameBoardFinalStateAsync(boardId, -1));
+
+            Assert.Equal("No new generations were generated given the user input.", exception.Message);
         }
 
         [Fact]

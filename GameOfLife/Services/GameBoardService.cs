@@ -47,7 +47,12 @@ namespace GameOfLife.Services
                 return null;
             }
 
-            for (int i = 0; i < numberOfGenerations || i == 0; i++)
+            if (numberOfGenerations <= 0)
+            {
+                throw new InvalidOperationException("No new generations were generated given the user input.");
+            }
+
+            for (int i = 0; i < numberOfGenerations; i++)
             {
                 var nextGenerationBoard = CalculateNextGeneration(gameBoard.Board);
                 gameBoard.Board = nextGenerationBoard;
@@ -66,6 +71,11 @@ namespace GameOfLife.Services
             if (gameBoard == null)
             {
                 return null;
+            }
+
+            if (numberOfGenerations < 0)
+            {
+                throw new InvalidOperationException("No new generations were generated given the user input.");
             }
 
             for (int i = 0; i < numberOfGenerations; i++)
